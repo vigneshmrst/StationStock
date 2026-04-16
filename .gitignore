@@ -1,0 +1,16 @@
+# Ignore Backend files
+backend/target/
+backend/.mvn/
+backend/.settings/
+backend/.classpath
+backend/.project
+
+# Ignore Frontend files
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
