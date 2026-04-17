@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ramsuvegatech.stationstock.dto.LoginRequest;
 import com.ramsuvegatech.stationstock.dto.RegisterRequest;
 import com.ramsuvegatech.stationstock.dto.UserSummary;
+import com.ramsuvegatech.stationstock.exception.EmailAlreadyExistException;
 import com.ramsuvegatech.stationstock.model.User;
 import com.ramsuvegatech.stationstock.service.AuthService;
 import com.ramsuvegatech.stationstock.utils.JwtUtils;
@@ -35,11 +36,17 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+		try {
 		System.out.println("Received registration request: " + request);
 		UserSummary user = authService.register(request);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(user);
-
+		}
+		catch(EmailAlreadyExistException e) {
+			Map<String, String> errorResponse = new HashMap<>();
+			errorResponse.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
 	}
 	   
 	   
@@ -47,7 +54,7 @@ public class AuthController {
 	   
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-		Optional<User> userOpt = authService.login(request);
+	try {	Optional<User> userOpt = authService.login(request);
 		if (userOpt.isPresent()) {
 			String token = jwtUtil.generateToken(userOpt.get().getEmail());
 			Map<String, String> response = new HashMap<>();
@@ -56,7 +63,11 @@ public class AuthController {
 
 		} else {
 			throw new RuntimeException("Invalid credentials");
-		}
+		}}
+	
+	catch(RuntimeException e) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+	}
 	   }
 	
 }

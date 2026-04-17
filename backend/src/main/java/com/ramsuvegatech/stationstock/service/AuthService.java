@@ -3,6 +3,7 @@ package com.ramsuvegatech.stationstock.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class AuthService {
 	
-@Autowired
-    private  UserRepository userRepository ;
 
-    //private  PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository ;
+
+
+    private final PasswordEncoder passwordEncoder;
 
     
 	@Transactional
@@ -41,7 +44,7 @@ public class AuthService {
 		user.setFirstName(request.getFirstName().trim());
 		user.setLastName(request.getLastName().trim());
 		user.setEmail(email);
-		user.setPassword(request.getPassword());
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
 		user.setRole(Role.EMPLOYEE); // All new users start as EMPLOYEE
 
 		User savedUser = userRepository.save(user);
@@ -61,7 +64,7 @@ public class AuthService {
 	
 	public Optional<User> login(LoginRequest request) {
 		Optional<User> user = userRepository.findByEmail(request.getEmail());
-		if (user.isPresent() && user.get().getPassword().equals(request.getPassword())) {
+		if (user.isPresent() && passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
 			return user;
 		}
 		return Optional.empty();
